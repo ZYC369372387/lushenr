@@ -1,0 +1,1219 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+  <title>像素守候 · 余丞写给杨桃（写给懵懵）</title>
+  <style>
+    :root{
+      --bg:#0b0f14; --ink:#e5e7eb; --muted:#9ca3af;
+      --accent:#22c55e; --pink:#ec4899; --warn:#f59e0b; --danger:#ef4444;
+    }
+    *{box-sizing:border-box}
+    body{margin:0;font-family:system-ui,-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;background:var(--bg);color:var(--ink);}
+    .wrap{max-width:980px;margin:0 auto;padding:14px 12px 22px;}
+    .top{display:flex;justify-content:space-between;align-items:flex-end;gap:10px;margin:6px 2px 10px}
+    .title{font-weight:900;letter-spacing:.5px;font-size:18px}
+    .sub{color:var(--muted);font-size:12px;line-height:1.4}
+    .grid{display:grid;grid-template-columns:1.15fr .85fr;gap:12px}
+    @media (max-width:920px){ .grid{grid-template-columns:1fr} }
+
+    .card{
+      background:linear-gradient(180deg,#0f172a,#0b1220);
+      border:1px solid rgba(255,255,255,.08);
+      border-radius:18px;
+      box-shadow:0 10px 30px rgba(0,0,0,.35);
+      overflow:hidden;
+      position:relative;
+    }
+    .pad{padding:12px}
+
+    /* Scene */
+    .scene{
+      position:relative;
+      border-bottom:1px solid rgba(255,255,255,.06);
+      height:260px;
+      overflow:hidden;
+      background:
+        radial-gradient(circle at 20% 60%, rgba(34,197,94,.18), transparent 45%),
+        radial-gradient(circle at 75% 35%, rgba(236,72,153,.14), transparent 46%),
+        linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.02));
+    }
+    .scene svg{width:100%;height:100%;display:block;opacity:.98}
+    .hud{
+      position:absolute;left:10px;top:10px;display:flex;gap:8px;flex-wrap:wrap;
+      pointer-events:none; z-index:5;
+    }
+    .badge{pointer-events:none;font-size:12px;color:var(--muted);padding:6px 10px;border:1px solid rgba(255,255,255,.10);border-radius:999px;background:rgba(0,0,0,.25)}
+    .badge strong{color:var(--ink);font-weight:900}
+    .hotspots{position:absolute;inset:0;z-index:4}
+    .spot{
+      position:absolute;border:1px dashed rgba(255,255,255,.26);border-radius:14px;
+      background:rgba(255,255,255,.02);
+      display:flex;align-items:center;justify-content:center;
+      color:rgba(229,231,235,.88);font-size:12px;
+      cursor:pointer; user-select:none;
+      transition:transform .08s ease, background .2s ease, border-color .2s ease;
+      -webkit-tap-highlight-color:transparent;
+      padding:6px;
+      text-align:center;
+      white-space:pre-line;
+    }
+    .spot:active{transform:translateY(1px)}
+    .spot:hover{background:rgba(255,255,255,.045);border-color:rgba(255,255,255,.34)}
+    .spot.hidden{display:none}
+
+    /* Progress */
+    .bar{height:10px;border-radius:999px;background:rgba(255,255,255,.08);overflow:hidden;margin-top:10px}
+    .bar i{display:block;height:100%;width:0%;background:linear-gradient(90deg,var(--accent),#60a5fa);transition:width .35s ease}
+
+    /* Dialog */
+    .chapter{
+      display:inline-flex;gap:8px;align-items:center;
+      margin:10px 0 8px;
+      padding:8px 10px;border-radius:999px;
+      border:1px solid rgba(255,255,255,.10);
+      background:rgba(0,0,0,.20);
+      font-weight:900;font-size:13px;
+    }
+    .chapter small{color:var(--muted);font-weight:800}
+    .dialog{
+      min-height:170px;
+      border:1px solid rgba(255,255,255,.10);
+      background:rgba(0,0,0,.25);
+      border-radius:16px;
+      padding:12px;
+      line-height:1.75;
+      font-size:15px;
+      white-space:pre-wrap;
+    }
+    .row{display:flex;gap:10px;margin-top:10px}
+    button{
+      border:1px solid rgba(255,255,255,.12);
+      background:rgba(255,255,255,.06);
+      color:var(--ink);
+      border-radius:14px;
+      padding:11px 10px;
+      font-size:14px;
+      cursor:pointer;
+      transition:transform .05s ease, background .2s ease;
+      -webkit-tap-highlight-color:transparent;
+    }
+    button:active{transform:translateY(1px)}
+    button.primary{background:rgba(34,197,94,.14);border-color:rgba(34,197,94,.25)}
+    button.danger{background:rgba(239,68,68,.12);border-color:rgba(239,68,68,.25)}
+    button.ghost{background:rgba(0,0,0,.18)}
+    .row button{flex:1}
+
+    .input{
+      display:flex;gap:10px;margin-top:10px;
+      padding:10px;border-radius:14px;border:1px solid rgba(255,255,255,.10);
+      background:rgba(0,0,0,.18);
+    }
+    input{flex:1;border:0;outline:none;background:transparent;color:var(--ink);font-size:14px;}
+    .hint{color:var(--muted);font-size:12px;margin-top:8px;line-height:1.5}
+
+    /* Right panel */
+    .panelTitle{font-weight:950;margin:0 0 8px;font-size:14px}
+    .box{
+      border:1px solid rgba(255,255,255,.10);
+      background:rgba(0,0,0,.22);
+      border-radius:16px;
+      padding:10px;
+    }
+    .kv{display:flex;justify-content:space-between;gap:10px;color:var(--muted);font-size:12px;line-height:1.6}
+    .kv strong{color:var(--ink)}
+    .pillRow{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
+    .pill{
+      font-size:12px;padding:6px 10px;border-radius:999px;
+      border:1px solid rgba(255,255,255,.10);
+      background:rgba(255,255,255,.04);
+      color:rgba(229,231,235,.92);
+      cursor:pointer; user-select:none;
+    }
+    .pill:active{transform:translateY(1px)}
+    .divider{height:1px;background:rgba(255,255,255,.08);margin:10px 0}
+    .small{font-size:12px;color:var(--muted)}
+    .task{display:flex;gap:10px;align-items:flex-start;padding:8px 6px;border-radius:12px}
+    .task.done{background:rgba(34,197,94,.08);border:1px solid rgba(34,197,94,.18)}
+    .task .tname{font-size:13px;font-weight:900}
+    .task .tdesc{font-size:12px;color:var(--muted);margin-top:2px;line-height:1.4}
+    .check{
+      width:18px;height:18px;border-radius:6px;border:1px solid rgba(255,255,255,.18);
+      display:flex;align-items:center;justify-content:center;
+      margin-top:1px;
+      flex:0 0 18px;
+    }
+    .task.done .check{border-color:rgba(34,197,94,.35);background:rgba(34,197,94,.14)}
+    .check span{font-size:12px;opacity:.0}
+    .task.done .check span{opacity:1}
+
+    /* NPC row */
+    .npcRow{display:flex;gap:10px;flex-wrap:wrap}
+    .npcBtn{
+      width:calc(33.33% - 6.7px);
+      min-width:110px;
+      display:flex;gap:10px;align-items:center;
+      padding:10px;
+      border-radius:16px;
+      border:1px solid rgba(255,255,255,.10);
+      background:rgba(255,255,255,.04);
+      cursor:pointer;
+      user-select:none;
+      -webkit-tap-highlight-color:transparent;
+    }
+    .npcBtn:active{transform:translateY(1px)}
+    .npcBtn.locked{opacity:.55; cursor:not-allowed;}
+    .avatar{
+      width:36px;height:36px;border-radius:14px;
+      display:flex;align-items:center;justify-content:center;
+      background:rgba(0,0,0,.30);
+      border:1px solid rgba(255,255,255,.10);
+      font-size:18px;
+      flex:0 0 36px;
+    }
+    .npcMeta{min-width:0}
+    .npcMeta b{display:block;font-size:13px}
+    .npcMeta span{display:block;font-size:12px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+    /* Effects */
+    .overlay{position:absolute;inset:0;pointer-events:none;z-index:3}
+    .bubble{
+      position:absolute; bottom:-30px;
+      animation: floatUp 2.9s ease-in forwards;
+      opacity:.95;
+      filter: drop-shadow(0 6px 12px rgba(0,0,0,.35));
+      font-size:18px;
+    }
+    @keyframes floatUp{
+      0%{transform:translateY(0) scale(.9); opacity:0;}
+      12%{opacity:1;}
+      100%{transform:translateY(-300px) scale(1.15); opacity:0;}
+    }
+    .banner{
+      position:absolute;left:50%;top:14px;transform:translateX(-50%);
+      padding:10px 14px;border-radius:999px;
+      border:1px solid rgba(236,72,153,.35);
+      background:rgba(236,72,153,.16);
+      font-weight:950;letter-spacing:.5px;
+      display:none;
+      z-index:6;
+    }
+    .fade{
+      position:absolute;inset:0;background:rgba(0,0,0,0);
+      transition:background .85s ease;
+      pointer-events:none;
+      z-index:2;
+    }
+    .toast{
+      position:absolute;left:50%;bottom:14px;transform:translateX(-50%);
+      padding:10px 12px;border-radius:14px;
+      border:1px solid rgba(255,255,255,.12);
+      background:rgba(0,0,0,.60);
+      font-size:13px;color:var(--ink);
+      opacity:0;transition:opacity .25s ease, transform .25s ease;
+      max-width:92%;text-align:center;
+      z-index:7;
+    }
+    .toast.show{opacity:1;transform:translateX(-50%) translateY(-6px)}
+
+    /* Branch modal */
+    .modalBack{
+      position:absolute;inset:0;background:rgba(0,0,0,.55);
+      display:none;align-items:center;justify-content:center;
+      z-index:20;padding:14px;
+    }
+    .modal{
+      width:min(520px, 100%);
+      border-radius:18px;
+      border:1px solid rgba(255,255,255,.12);
+      background:linear-gradient(180deg, rgba(15,23,42,.92), rgba(11,18,32,.92));
+      box-shadow:0 18px 60px rgba(0,0,0,.55);
+      padding:14px;
+    }
+    .modal h4{margin:0 0 6px;font-size:15px;font-weight:950}
+    .modal p{margin:0 0 10px;color:var(--muted);font-size:12px;line-height:1.5}
+    .modal .opt{display:flex;flex-direction:column;gap:8px}
+    .opt button{width:100%;text-align:left}
+    .opt button b{display:block;font-size:14px}
+    .opt button span{display:block;color:var(--muted);font-size:12px;margin-top:2px}
+  </style>
+</head>
+<body>
+<div class="wrap">
+  <div class="top">
+    <div>
+      <div class="title">像素守候 · 余丞写给杨桃（写给懵懵）</div>
+      <div class="sub">NPC集合：妹妹/哥哥/养父母（点击头像触发隐藏嘱托）。任务/分支/多场景/离线存档。</div>
+    </div>
+    <div class="sub">v2.4-fixed（已修复交互）</div>
+  </div>
+
+  <div class="grid">
+    <!-- Left -->
+    <div class="card" id="leftCard">
+      <div class="scene" id="scene">
+        <div class="hud">
+          <span class="badge">NPC：<strong>余丞</strong></span>
+          <span class="badge" id="b_day">第 <strong>1</strong> 天</span>
+          <span class="badge" id="b_server">服务器：<strong>运行中</strong></span>
+        </div>
+
+        <div class="banner" id="banner">我更爱你</div>
+        <div class="fade" id="fade"></div>
+        <div class="overlay" id="overlay"></div>
+        <div class="toast" id="toast"></div>
+
+        <div id="sceneArt"></div>
+
+        <div class="hotspots">
+          <!-- home -->
+          <div class="spot" id="spot_pond"   style="left:6%; top:58%; width:29%; height:30%;">池塘\n（修复）</div>
+          <div class="spot" id="spot_garden" style="left:38%; top:62%; width:26%; height:26%;">菜园\n（修复）</div>
+          <div class="spot" id="spot_cabinet"style="left:68%; top:62%; width:26%; height:26%;">床头柜\n（拿糖）</div>
+          <div class="spot" id="spot_peach"  style="left:54%; top:16%; width:40%; height:36%;">后院桃林\n（种树）</div>
+
+          <!-- cinema -->
+          <div class="spot hidden" id="spot_ticket" style="left:8%; top:18%; width:34%; height:32%;">座位旁\n（电影票）</div>
+
+          <!-- bakery -->
+          <div class="spot hidden" id="spot_envelope" style="left:60%; top:58%; width:34%; height:28%;">柜台\n（泛黄信封）</div>
+
+          <!-- cat -->
+          <div class="spot hidden" id="spot_urn" style="left:58%; top:63%; width:36%; height:24%;">骨灰盒</div>
+
+          <!-- final -->
+          <div class="spot hidden" id="spot_sms" style="left:8%; top:58%; width:34%; height:28%;">短信\n（关服）</div>
+        </div>
+
+        <!-- Branch modal -->
+        <div class="modalBack" id="modalBack">
+          <div class="modal">
+            <h4>关服前一刻，你想对我说什么？</h4>
+            <p>杨桃，你只需要选一种说法。它会影响终章的最后两句（并写入存档）。</p>
+            <div class="opt">
+              <button class="primary" id="optTruth">
+                <b>A. 说真话</b>
+                <span>“我想你。”（把思念说出口）</span>
+              </button>
+              <button id="optBless">
+                <b>B. 只说祝福</b>
+                <span>“我会好好的。”（把你留在未来里）</span>
+              </button>
+              <button id="optJoke">
+                <b>C. 讲个笑话</b>
+                <span>“你真啰嗦。”（用轻松掩住哽咽）</span>
+              </button>
+            </div>
+            <div class="small" style="margin-top:10px;">选完后继续推进剧情即可看到不同终章文字。</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="pad">
+        <div class="bar" title="家园修复进度"><i id="progress"></i></div>
+        <div class="chapter"><span id="ch">序章</span> <small id="chHint">田园小屋</small></div>
+        <div class="dialog" id="dialog"></div>
+
+        <div class="row">
+          <button class="primary" id="btnNext">继续</button>
+          <button class="ghost" id="btnAuto">自动：关</button>
+          <button class="danger" id="btnReset">重开</button>
+        </div>
+
+        <div class="row">
+          <button id="btnWater">打水</button>
+          <button id="btnFish">钓鱼</button>
+          <button id="btnWeed">除草</button>
+          <button id="btnPeach">种桃林</button>
+        </div>
+
+        <div class="input">
+          <input id="say" placeholder='对我说句话吧，杨桃……（我爱你/不开心/生日快乐/再见/啰嗦）' />
+          <button class="primary" id="btnSend" style="flex:0 0 86px">发送</button>
+        </div>
+
+        <div class="hint">
+          玩法：点【虚线框热点】做任务拿道具；右侧点【NPC头像】触发隐藏嘱托。<br/>
+          输入 “我爱你” 会出现粉色泡泡；输入“不开心”会提示床头柜糖果。<br/>
+          关服前会出现一次【分支选择】。
+        </div>
+      </div>
+    </div>
+
+    <!-- Right -->
+    <div class="card">
+      <div class="pad">
+        <h3 class="panelTitle">NPC集合（点头像说话）</h3>
+        <div class="box">
+          <div class="npcRow" id="npcRow"></div>
+          <div class="small" style="margin-top:8px;">提示：部分NPC会在后期章节解锁（像“最后的嘱托”）。</div>
+        </div>
+
+        <div style="height:12px"></div>
+
+        <h3 class="panelTitle">任务列表</h3>
+        <div class="box" id="taskBox"></div>
+
+        <div style="height:12px"></div>
+
+        <h3 class="panelTitle">背包</h3>
+        <div class="box">
+          <div class="kv"><span>糖果</span><strong id="invCandy">0</strong></div>
+          <div class="kv"><span>桃树种子</span><strong id="invSeed">0</strong></div>
+          <div class="kv"><span>老式蛋糕（生日快乐）</span><strong id="invCake">0/3</strong></div>
+          <div class="kv"><span>电影票</span><strong id="invTicket">未获得</strong></div>
+          <div class="kv"><span>信封</span><strong id="invEnvelope">未获得</strong></div>
+          <div class="kv"><span>分支选择</span><strong id="invBranch">未选择</strong></div>
+          <div class="divider"></div>
+          <div class="pillRow">
+            <div class="pill" id="pillLove">我爱你</div>
+            <div class="pill" id="pillSad">我不开心</div>
+            <div class="pill" id="pillBday">生日快乐</div>
+            <div class="pill" id="pillBye">再见</div>
+          </div>
+          <div class="small" style="margin-top:8px;">点快捷短语可直接发送。</div>
+        </div>
+
+        <div style="height:12px"></div>
+
+        <h3 class="panelTitle">成就</h3>
+        <div class="box">
+          <div class="kv"><span>修复家园</span><strong id="achHome">0%</strong></div>
+          <div class="kv"><span>找到糖果</span><strong id="achCandy">0</strong></div>
+          <div class="kv"><span>触发生日彩蛋</span><strong id="achCake">0/3</strong></div>
+          <div class="kv"><span>终章烟花</span><strong id="achFinal">未达成</strong></div>
+          <div class="divider"></div>
+          <div class="small">隐藏：修复到 100% 会得到“额外一句话”。</div>
+        </div>
+
+        <div style="height:12px"></div>
+
+        <h3 class="panelTitle">设置</h3>
+        <div class="box">
+          <div class="kv"><span>打字速度</span><strong id="speedLabel">中</strong></div>
+          <input id="speed" type="range" min="10" max="45" step="1" style="width:100%;margin-top:8px" />
+          <div class="divider"></div>
+          <div class="small">自动存档：开启（存在本机浏览器 localStorage）。</div>
+          <div class="small" style="margin-top:8px;color:#fecaca"><b>重开</b>会清空存档。</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+(() => {
+  // ===== Helpers =====
+  const el = id => document.getElementById(id);
+  const toast = el('toast');
+  const overlay = el('overlay');
+  const banner = el('banner');
+  const fade = el('fade');
+  const dialog = el('dialog');
+  const sceneArt = el('sceneArt');
+  const taskBox = el('taskBox');
+  const npcRow = el('npcRow');
+
+  const bDay = el('b_day');
+  const bServer = el('b_server');
+
+  const progress = el('progress');
+  const ch = el('ch');
+  const chHint = el('chHint');
+
+  const speed = el('speed');
+  const speedLabel = el('speedLabel');
+
+  const say = el('say');
+
+  const spots = {
+    pond: el('spot_pond'),
+    garden: el('spot_garden'),
+    cabinet: el('spot_cabinet'),
+    peach: el('spot_peach'),
+    ticket: el('spot_ticket'),
+    envelope: el('spot_envelope'),
+    urn: el('spot_urn'),
+    sms: el('spot_sms'),
+  };
+
+  const modalBack = el('modalBack');
+  const optTruth = el('optTruth');
+  const optBless = el('optBless');
+  const optJoke  = el('optJoke');
+
+  const clamp = (v,a,b)=>Math.max(a,Math.min(b,v));
+
+  // ✅ 单一且唯一的 toast 函数（修复点）
+  const showToast = (msg) => {
+    if(!toast) return;
+    toast.textContent = msg;
+    toast.classList.add('show');
+    setTimeout(()=>toast.classList.remove('show'), 1500);
+  };
+
+  const bubbles = () => {
+    banner.style.display='block';
+    setTimeout(()=>banner.style.display='none',1600);
+    for(let k=0;k<24;k++){
+      const b=document.createElement('div');
+      b.className='bubble';
+      b.textContent=Math.random()<.55?'🫧':'💗';
+      b.style.left=(Math.random()*92+4)+'%';
+      b.style.animationDelay=(Math.random()*0.7)+'s';
+      overlay.appendChild(b);
+      b.addEventListener('animationend',()=>b.remove());
+    }
+  };
+
+  const fireworks = () => {
+    for(let k=0;k<48;k++){
+      const f=document.createElement('div');
+      f.className='bubble';
+      f.textContent=['🎆','🎇','✨','⭐','💥'][Math.floor(Math.random()*5)];
+      f.style.left=(Math.random()*92+4)+'%';
+      f.style.animationDelay=(Math.random()*0.9)+'s';
+      f.style.fontSize=(16+Math.random()*10)+'px';
+      overlay.appendChild(f);
+      f.addEventListener('animationend',()=>f.remove());
+    }
+  };
+
+  const blackFlash = (alpha=.42, ms=1000) => {
+    fade.style.background=`rgba(0,0,0,${alpha})`;
+    setTimeout(()=>fade.style.background='rgba(0,0,0,0)', ms);
+  };
+
+  // ===== Inline SVG scenes =====
+  const SVG = {
+    home: () => `
+      <svg viewBox="0 0 900 300" preserveAspectRatio="none">
+        <defs>
+          <linearGradient id="gSky" x1="0" x2="0" y1="0" y2="1">
+            <stop offset="0" stop-color="#172554" stop-opacity=".92"/>
+            <stop offset="1" stop-color="#0b1220" stop-opacity="1"/>
+          </linearGradient>
+          <linearGradient id="gGlow" x1="0" x2="1">
+            <stop offset="0" stop-color="#22c55e" stop-opacity=".22"/>
+            <stop offset="1" stop-color="#ec4899" stop-opacity=".18"/>
+          </linearGradient>
+        </defs>
+        <rect width="900" height="300" fill="url(#gSky)"/>
+        <rect y="210" width="900" height="90" fill="#0b1b16"/>
+        <rect y="226" width="900" height="74" fill="#0a1412" opacity=".95"/>
+
+        <g opacity=".30">
+          <circle cx="60" cy="208" r="18" fill="#22c55e"/>
+          <circle cx="90" cy="206" r="14" fill="#22c55e"/>
+          <circle cx="130" cy="210" r="16" fill="#22c55e"/>
+          <circle cx="820" cy="206" r="16" fill="#22c55e"/>
+          <circle cx="850" cy="208" r="13" fill="#22c55e"/>
+        </g>
+
+        <ellipse cx="185" cy="248" rx="150" ry="45" fill="#0b2a3c" opacity=".96"/>
+        <ellipse cx="185" cy="248" rx="120" ry="32" fill="#0c3b56" opacity=".52"/>
+        <text x="110" y="257" fill="#9ca3af" font-size="14">池塘</text>
+
+        <rect x="370" y="226" width="220" height="66" rx="12" fill="#1b2a14" opacity=".92"/>
+        <path d="M380 238 H580" stroke="#22311a" stroke-width="6" opacity=".8"/>
+        <path d="M380 252 H580" stroke="#22311a" stroke-width="6" opacity=".7"/>
+        <path d="M380 266 H580" stroke="#22311a" stroke-width="6" opacity=".6"/>
+        <text x="450" y="268" fill="#9ca3af" font-size="14">菜园</text>
+
+        <polygon points="610,145 720,72 830,145" fill="#1f2937" opacity=".96"/>
+        <rect x="610" y="140" width="220" height="155" rx="12" fill="#111827" opacity=".94"/>
+        <rect x="690" y="200" width="60" height="95" rx="10" fill="#0b0f14" opacity=".75"/>
+        <rect x="760" y="184" width="52" height="48" rx="8" fill="#0b0f14" opacity=".62"/>
+        <rect x="770" y="192" width="32" height="28" rx="6" fill="url(#gGlow)" opacity=".55"/>
+        <text x="678" y="122" fill="#9ca3af" font-size="14">田园小屋</text>
+
+        <g opacity=".42">
+          <circle cx="740" cy="106" r="10" fill="#ec4899"/>
+          <circle cx="770" cy="102" r="8" fill="#ec4899"/>
+          <circle cx="800" cy="110" r="9" fill="#ec4899"/>
+        </g>
+      </svg>
+    `,
+    cinema: () => `
+      <svg viewBox="0 0 900 300" preserveAspectRatio="none">
+        <rect width="900" height="300" fill="#060810"/>
+        <rect x="60" y="36" width="780" height="165" rx="20" fill="#0b1220" opacity=".92"/>
+        <rect x="92" y="62" width="716" height="115" rx="16" fill="#0f172a" opacity=".92"/>
+        <text x="120" y="114" fill="#e5e7eb" font-size="20" opacity=".92">当年陪你看电影的人，如今还在身边吗？</text>
+        <text x="120" y="144" fill="#9ca3af" font-size="14" opacity=".9">（影厅灯光未亮 · 你身旁的座位空着）</text>
+        <g opacity=".92">
+          <rect x="140" y="215" width="145" height="62" rx="16" fill="#111827"/>
+          <rect x="305" y="215" width="145" height="62" rx="16" fill="#111827"/>
+          <rect x="470" y="215" width="145" height="62" rx="16" fill="#111827"/>
+          <rect x="635" y="215" width="145" height="62" rx="16" fill="#111827"/>
+          <text x="515" y="252" fill="#9ca3af" font-size="14">空座</text>
+        </g>
+      </svg>
+    `,
+    bakery: () => `
+      <svg viewBox="0 0 900 300" preserveAspectRatio="none">
+        <defs>
+          <linearGradient id="gStreet" x1="0" x2="0" y1="0" y2="1">
+            <stop offset="0" stop-color="#0f172a" stop-opacity=".95"/>
+            <stop offset="1" stop-color="#070a10" stop-opacity="1"/>
+          </linearGradient>
+        </defs>
+        <rect width="900" height="300" fill="url(#gStreet)"/>
+        <rect y="220" width="900" height="80" fill="#0b0f14" opacity=".9"/>
+        <rect x="70" y="55" width="760" height="190" rx="18" fill="#111827" opacity=".94"/>
+        <rect x="110" y="95" width="330" height="120" rx="14" fill="#0b0f14" opacity=".55"/>
+        <text x="135" y="122" fill="#9ca3af" font-size="14">橱窗</text>
+        <g transform="translate(265,172)">
+          <rect x="-62" y="25" width="124" height="22" rx="11" fill="#f59e0b" opacity=".78"/>
+          <rect x="-52" y="4" width="104" height="24" rx="12" fill="#fbbf24" opacity=".72"/>
+          <rect x="-40" y="-18" width="80" height="24" rx="12" fill="#fde68a" opacity=".68"/>
+          <circle cx="0" cy="-30" r="8" fill="#ec4899" opacity=".85"/>
+        </g>
+        <rect x="490" y="120" width="300" height="98" rx="14" fill="#0b0f14" opacity=".50"/>
+        <text x="520" y="156" fill="#e5e7eb" font-size="18" opacity=".95">“愿赌服输。”</text>
+        <text x="520" y="184" fill="#9ca3af" font-size="14" opacity=".9">柜台上放着泛黄信封</text>
+      </svg>
+    `,
+    cat: () => `
+      <svg viewBox="0 0 900 300" preserveAspectRatio="none">
+        <rect width="900" height="300" fill="#070a10"/>
+        <rect y="220" width="900" height="80" fill="#0a1412"/>
+        <text x="40" y="68" fill="#9ca3af" font-size="14">夜深，回到家：门口空荡荡的。</text>
+        <rect x="620" y="220" width="210" height="55" rx="14" fill="#111827" opacity=".92"/>
+        <rect x="660" y="192" width="130" height="34" rx="14" fill="#0f172a" opacity=".92"/>
+        <text x="666" y="255" fill="#9ca3af" font-size="13">骨灰盒</text>
+        <g transform="translate(210,212)" opacity=".9">
+          <path d="M0,0 C10,-44 62,-68 98,-50 C136,-70 188,-44 198,0 C208,52 168,80 98,80 C28,80 -8,52 0,0 Z"
+                fill="#e5e7eb" opacity=".10"/>
+          <circle cx="72" cy="22" r="6" fill="#e5e7eb" opacity=".22"/>
+          <circle cx="124" cy="22" r="6" fill="#e5e7eb" opacity=".22"/>
+          <text x="32" y="110" fill="#9ca3af" font-size="14">小黑（回忆）</text>
+        </g>
+      </svg>
+    `,
+    final: () => `
+      <svg viewBox="0 0 900 300" preserveAspectRatio="none">
+        <rect width="900" height="300" fill="#05070d"/>
+        <text x="40" y="70" fill="#e5e7eb" font-size="18" opacity=".92">【恭喜玩家：余盛楠达成隐藏彩蛋】</text>
+        <text x="40" y="100" fill="#9ca3af" font-size="14" opacity=".9">“如果你已经准备好说再见，说明你不再需要这里了。恭喜你。”</text>
+        <text x="40" y="130" fill="#9ca3af" font-size="14" opacity=".9">“待下次相见，要在最盛的烟花下。”</text>
+        <rect x="70" y="178" width="760" height="92" rx="20" fill="#0b1220" opacity=".80"/>
+        <text x="105" y="228" fill="#e5e7eb" font-size="18" opacity=".95">（屏幕暗下去之前，你还想留下些什么？）</text>
+      </svg>
+    `
+  };
+
+  // ===== Story =====
+  const story = [
+    { scene:'home', ch:'序章', hint:'田园小屋', text:
+`杨桃——
+你回来了。
+
+田园小屋还在，只是菜园荒芜，池塘里的鱼也翻了白肚。
+我知道你不是来“玩游戏”的，你只是想找回一点点当年的温暖。`},
+
+    { scene:'home', ch:'序章', hint:'修复', text:
+`你开始打水、钓鱼、除草。
+我站在你的身侧——像素构成、数据驱动，却仍想把这片小小世界替你守好。
+
+再怎么修复画面，也修不回当年并肩规划未来的温度。
+但你每做一步，我都想夸你一句：你很厉害。`},
+
+    { scene:'home', ch:'序章', hint:'对话框', text:
+`（屏幕渐暗）
+我走到你身边：
+
+『没想到你还会回来。上次说要在后院种桃林——就今天实现吧？』`},
+
+    { scene:'home', ch:'序章', hint:'代码礼物', text:
+`于是我带你收集种子、种下桃树。
+这是我用代码送你的礼物——一个永远守候在像素世界的NPC。
+
+你可以把日常、委屈、沉默都交给这里。
+你说的每一句，我都会接住。`},
+
+    { scene:'cinema', ch:'第 2 年', hint:'影院', text:
+`后来你独自去看那部续作。
+灯光未亮，你望向身旁空座。
+
+海报刺进眼里：当年陪你看电影的人，如今还在身边吗？
+杨桃，我想坐在你旁边——但我只能把答案留在“故事里”。`},
+
+    { scene:'cinema', ch:'第 2 年', hint:'样片', text:
+`我写给你的话在脑海里重播：
+
+“如果我在，此刻我一定在这份惊喜下向你求婚。
+如果我不在……别难过。样片我早已坐在当年的位置上看过了。”`},
+
+    { scene:'bakery', ch:'<6>', hint:'蛋糕店', text:
+`第三次触发『生日快乐』彩蛋、收到第三块老式蛋糕时——
+你终于意识到：我已经离开。
+
+你鼓起勇气踏进那家蛋糕店。
+夕阳照在橱窗上，老式三层蛋糕模型，依然被留在原处。`},
+
+    { scene:'bakery', ch:'<6>', hint:'赌局', text:
+`老板说，有位客人特意花钱，请她务必留着模型。
+“因为他和我打了个赌——三年后，会有一位女士推开门，指定要这款蛋糕。”
+
+杨桃，我赌的不是蛋糕。
+我赌你会活得更好。`},
+
+    { scene:'bakery', ch:'<6>', hint:'信里', text:
+`柜台上放着一个泛黄信封。
+里面是我没来得及当面说的答案：
+
+“我对你心动，远比我们以为的更早。”`},
+
+    { scene:'cat', ch:'<7>', hint:'小黑', text:
+`第五年，小黑走了。
+它悄悄躲到最容易清理的床下，连离开都不愿给你添麻烦。
+
+夜深，你抱着骨灰盒回到家。
+门口空荡荡的。
+我知道，你会突然觉得：世界里最后一点“温度”也散了。`},
+
+    { scene:'final', ch:'<8>', hint:'关服', text:
+`第七年，你收到短信：那款游戏即将关服。
+今夜，你最后一次登录。
+
+桃林依旧繁盛，家园整洁如初。
+还有许多熟悉的NPC——都是我提前埋在数据里的“安慰”。`},
+
+    { scene:'final', ch:'<8>', hint:'告别', text:
+`你告诉我：服务器要关闭，这是最后的告别。
+我头顶冒出疑惑的表情，随即释然：
+
+『所以，是来告别的啊。
+如果你已经准备好说再见，说明你不再需要这里了。
+恭喜你。』
+
+（烟花会在你“真正告别”后点亮。）`},
+
+    { scene:'final', ch:'分支', hint:'关服前一刻', text:
+`屏幕即将暗下去。
+杨桃，在最后一刻——你想对我说什么？`},
+
+    { scene:'final', ch:'终章', hint:'我更爱你', text:`（终章加载中……）`},
+  ];
+
+  // ===== Tasks =====
+  const TASKS = [
+    { id:'t_pond',     name:'修复池塘',   desc:'家园点击“池塘”热点一次。' },
+    { id:'t_garden',   name:'修复菜园',   desc:'家园点击“菜园”热点一次。' },
+    { id:'t_candy',    name:'找到糖果',   desc:'输入“不开心”，再点床头柜拿到糖。' },
+    { id:'t_peach',    name:'种下桃林',   desc:'获得种子并在“后院桃林”种下一次。' },
+    { id:'t_ticket',   name:'取回电影票', desc:'影院点击“电影票”热点。' },
+    { id:'t_envelope', name:'拿到信封',   desc:'蛋糕店点击“泛黄信封”热点。' },
+    { id:'t_sms',      name:'读取关服短信', desc:'关服场景点击“短信”热点。' },
+    { id:'t_final',    name:'终章烟花',   desc:'完成分支选择并抵达终章。' },
+    { id:'t_home100',  name:'隐藏：修复到100%', desc:'把家园修复进度提升到 100%。' },
+  ];
+
+  // ===== NPC集合 =====
+  const NPCS = [
+    { id:'yucong', name:'余丞', icon:'💻', unlockAt:'home',  blurb:'守候NPC' },
+    { id:'brother', name:'哥哥', icon:'🧥', unlockAt:'cinema', blurb:'一直对你好' },
+    { id:'foster_father', name:'养父', icon:'🧓', unlockAt:'bakery', blurb:'叮咛与撑伞' },
+    { id:'foster_mother', name:'养母', icon:'🧣', unlockAt:'bakery', blurb:'把你放心上' },
+    { id:'sister', name:'妹妹', icon:'🎀', unlockAt:'cat', blurb:'把你护在前面' },
+  ];
+
+  // ===== Save state =====
+  const SAVE_KEY = "pixel_npc_yucong_v24_fixed";
+  const defaultState = () => ({
+    idx:0, day:1, home:12,
+    candy:0, seed:0, cake:0,
+    hasTicket:false, hasEnvelope:false,
+    final:false, typeMs:22,
+    tasks: Object.fromEntries(TASKS.map(t=>[t.id,false])),
+    branch:null,
+    candyReady:false, candyTaken:false,
+    npcPtr: {},
+  });
+
+  let S = load() || defaultState();
+
+  function save(){ try{ localStorage.setItem(SAVE_KEY, JSON.stringify(S)); }catch(e){} }
+  function load(){ try{ const raw = localStorage.getItem(SAVE_KEY); return raw?JSON.parse(raw):null; }catch(e){ return null; } }
+  function hardReset(){ try{ localStorage.removeItem(SAVE_KEY);}catch(e){} location.reload(); }
+
+  // ===== Typewriter =====
+  let typing=false, typeTimer=null, auto=false, autoTimer=null;
+  function stopType(){ if(typeTimer) clearTimeout(typeTimer); typeTimer=null; typing=false; }
+  function typewrite(text, onDone){
+    stopType(); typing=true; dialog.textContent=""; let p=0;
+    const tick=()=>{
+      if(!typing) return;
+      if(p>=text.length){ typing=false; dialog.textContent=text; onDone&&onDone(); return; }
+      const c=text[p++]; dialog.textContent+=c;
+      let delay=S.typeMs;
+      if(c==='\n') delay+=120;
+      if('，。！？；：“”"…'.includes(c)) delay+=70;
+      typeTimer=setTimeout(tick, delay);
+    };
+    tick();
+  }
+
+  // ===== Task render =====
+  function renderTasks(){
+    taskBox.innerHTML = TASKS.map(t=>{
+      const done = !!S.tasks?.[t.id];
+      return `
+        <div class="task ${done?'done':''}">
+          <div class="check"><span>✓</span></div>
+          <div>
+            <div class="tname">${t.name}</div>
+            <div class="tdesc">${t.desc}</div>
+          </div>
+        </div>
+      `;
+    }).join('');
+  }
+  function setTask(id, val=true){
+    if(!S.tasks) S.tasks = {};
+    if(S.tasks[id] === val) return;
+    S.tasks[id] = val;
+    save();
+    renderTasks();
+  }
+
+  // ===== Scene =====
+  function setScene(name){
+    sceneArt.innerHTML = (SVG[name]?.() || SVG.home());
+
+    const showHome = name==='home';
+    const showCinema = name==='cinema';
+    const showBakery = name==='bakery';
+    const showCat = name==='cat';
+    const showFinal = name==='final';
+
+    spots.pond.classList.toggle('hidden', !showHome);
+    spots.garden.classList.toggle('hidden', !showHome);
+    spots.cabinet.classList.toggle('hidden', !showHome);
+    spots.peach.classList.toggle('hidden', !showHome);
+
+    spots.ticket.classList.toggle('hidden', !showCinema);
+    spots.envelope.classList.toggle('hidden', !showBakery);
+    spots.urn.classList.toggle('hidden', !showCat);
+    spots.sms.classList.toggle('hidden', !showFinal);
+  }
+
+  function currentSceneKey(){ return story[S.idx].scene; }
+  function npcUnlocked(npc){
+    const order = { home:0, cinema:1, bakery:2, cat:3, final:4 };
+    return order[currentSceneKey()] >= order[npc.unlockAt];
+  }
+
+  function npcLines(id){
+    const br = S.branch;
+    if(id==='yucong'){
+      return [
+        "『杨桃，你点开我，就等于把自己从黑暗里拉出来一次。』",
+        "『你不必证明你很好，你只要继续往前走就行。』",
+        "『如果你想哭，就在这里哭。我会把“安静”也留给你。』",
+        br==='truth'
+          ? "『你说“我想你”的时候，我差点就想从屏幕里走出来抱你。』"
+          : br==='bless'
+            ? "『你说“我会好好的”，我真的替你高兴。那就是你赢了。』"
+            : "『你说我啰嗦——行，我认。可我还是想提醒你：该休息了。』",
+      ];
+    }
+    if(id==='brother'){
+      return [
+        "『桃子，别把所有事都往自己身上背。你累了就靠一靠。』",
+        "『你每次逞强，我都看得出来。下次别逞强了，跟我说。』",
+        "『你不是一个人。哪怕你不说，我也会站在你这边。』",
+        "『如果你觉得世界太吵，就回家。我给你留灯。』",
+      ];
+    }
+    if(id==='foster_father'){
+      return [
+        "『丫头，天冷就把围巾系好，别嫌麻烦。』",
+        "『你走的路啊，不必一直硬。该停就停，停了也不算输。』",
+        "『我和你妈不是你欠来的缘分，是我们捡到的福气。』",
+        "『你受委屈了就回家，门口永远给你留着。』",
+      ];
+    }
+    if(id==='foster_mother'){
+      return [
+        "『饿了就吃，困了就睡，别把自己当成可以一直省略的人。』",
+        "『你笑起来最好看。别为了谁，把笑弄丢了。』",
+        "『你要是想他，就想；想不是软弱，是认真爱过。』",
+        "『你可以慢一点，但别把自己落下。』",
+      ];
+    }
+    if(id==='sister'){
+      return [
+        "『姐姐，我没走远。我只是换了一个角度，看你长大。』",
+        "『你不要用“如果当时”惩罚自己。你活下去，就是我最想要的答案。』",
+        "『我把你护在前面，不是要你背负我，是要你继续幸福。』",
+        "『姐姐，你要记得：你值得被好好爱着。』",
+      ];
+    }
+    return ["『……』"];
+  }
+
+  function pushLine(line){
+    stopType();
+    dialog.textContent = dialog.textContent + "\n\n" + line;
+    save();
+  }
+
+  function renderNPCRow(){
+    if(!npcRow) return;
+    npcRow.innerHTML = NPCS.map(n=>{
+      const unlocked = npcUnlocked(n);
+      const cls = unlocked ? "npcBtn" : "npcBtn locked";
+      const sub = unlocked ? n.blurb : "未解锁";
+      return `
+        <div class="${cls}" data-npc="${n.id}">
+          <div class="avatar">${n.icon}</div>
+          <div class="npcMeta">
+            <b>${n.name}</b>
+            <span>${sub}</span>
+          </div>
+        </div>
+      `;
+    }).join('');
+
+    npcRow.querySelectorAll('[data-npc]').forEach(btn=>{
+      btn.addEventListener('click', ()=>{
+        const id = btn.getAttribute('data-npc');
+        const npc = NPCS.find(x=>x.id===id);
+        if(!npcUnlocked(npc)){ showToast("该NPC会在后期章节解锁"); return; }
+        const lines = npcLines(id);
+        if(!S.npcPtr) S.npcPtr = {};
+        const ptr = (S.npcPtr[id] ?? 0) % lines.length;
+        S.npcPtr[id] = ptr + 1;
+        save();
+        pushLine(`${npc.name}：${lines[ptr]}`);
+        showToast(`${npc.name} · 嘱托`);
+      });
+    });
+  }
+
+  function renderNode(withType=true){
+    const node = story[S.idx];
+    ch.textContent = node.ch;
+    chHint.textContent = node.hint;
+
+    setScene(node.scene);
+    updateHUD();
+    updateSide();
+    renderTasks();
+    renderNPCRow();
+
+    if(withType){
+      typewrite(node.text, ()=>{
+        if(auto){
+          autoTimer && clearTimeout(autoTimer);
+          autoTimer = setTimeout(()=>next(), 700);
+        }
+      });
+    }else{
+      stopType();
+      dialog.textContent = node.text;
+    }
+
+    if (node.text.includes('暗') || node.text.includes('渐暗')) blackFlash(.40, 1000);
+    save();
+  }
+
+  function updateHUD(){
+    bDay.innerHTML = `第 <strong>${S.day}</strong> 天`;
+    const node = story[S.idx];
+    const serverText = (node.scene==='final') ? (S.final ? '已关闭' : '即将关闭') : '运行中';
+    bServer.innerHTML = `服务器：<strong>${serverText}</strong>`;
+    bServer.style.color = (node.scene==='final') ? '#fecaca' : 'var(--muted)';
+  }
+
+  function updateSide(){
+    el('invCandy').textContent = S.candy;
+    el('invSeed').textContent = S.seed;
+    el('invCake').textContent = `${S.cake}/3`;
+    el('invTicket').textContent = S.hasTicket ? '已获得' : '未获得';
+    el('invEnvelope').textContent = S.hasEnvelope ? '已获得' : '未获得';
+    el('invBranch').textContent = S.branch ? ({truth:'A 说真话', bless:'B 只说祝福', joke:'C 讲笑话'}[S.branch]) : '未选择';
+
+    el('achHome').textContent = `${clamp(S.home,0,100)}%`;
+    el('achCandy').textContent = S.candy;
+    el('achCake').textContent = `${S.cake}/3`;
+    el('achFinal').textContent = S.final ? '已达成' : '未达成';
+
+    progress.style.width = clamp(S.home,0,100) + '%';
+  }
+
+  // ===== Gameplay =====
+  function homeRepair(inc, line){
+    S.home = clamp(S.home + inc, 0, 100);
+    pushLine(`余丞：『${line}』`);
+
+    if(S.home >= 100){
+      setTask('t_home100', true);
+      pushLine(`余丞：『家园修复到 100% 了。杨桃——你能把生活也一点点修好。即便没有我。』`);
+      showToast("隐藏任务完成：修复到100%");
+    }
+    S.day += 1;
+    updateSide();
+    save();
+  }
+
+  function gainSeed(){
+    S.seed += 1;
+    showToast(`获得桃树种子 ×1（${S.seed}）`);
+    updateSide(); save();
+  }
+
+  function plantPeach(){
+    if(S.seed <= 0){
+      gainSeed();
+      pushLine(`余丞：『种子找到了。杨桃，去后院，把桃林种起来。』`);
+      return;
+    }
+    S.seed -= 1;
+    setTask('t_peach', true);
+    homeRepair(15, "你种下桃树苗：约定开始发芽。");
+    showToast("任务完成：种下桃林");
+    updateSide(); save();
+  }
+
+  function triggerCandy(){
+    S.candy += 1;
+    S.candyReady = true;
+    pushLine(`余丞：『我检测到你“不开心”。杨桃，床头柜第二层——绿色包装的惊喜在等你。』`);
+    showToast(`糖 ×1（${S.candy}）`);
+    updateSide(); save();
+  }
+
+  function takeCandyFromCabinet(){
+    if(!S.candyReady){
+      pushLine(`余丞：『床头柜第二层现在是空的。等你“不开心”的时候再来。』`);
+      return;
+    }
+    S.candyTaken = true;
+    S.candyReady = false;
+    setTask('t_candy', true);
+    pushLine(`（你打开床头柜第二层，找到绿色包装的糖。）\n余丞：『杨桃，现在好点了吗？』`);
+    showToast("任务完成：找到糖果");
+    updateSide(); save();
+  }
+
+  function birthday(){
+    S.cake = clamp(S.cake + 1, 0, 3);
+    pushLine(`余丞：『生日快乐，杨桃。』（收到第 ${S.cake} 块老式蛋糕）`);
+    if (S.cake === 3){
+      pushLine(`（你忽然意识到：我已离开。但我仍在这里。）`);
+      blackFlash(.28, 900);
+    }
+    showToast(`蛋糕 ${S.cake}/3`);
+    updateSide(); save();
+  }
+
+  function love(){
+    bubbles();
+    pushLine(`余丞：『杨桃，我更爱你。』`);
+    showToast("粉色泡泡");
+  }
+
+  function pickupTicket(){
+    if(S.hasTicket){
+      pushLine(`（电影票还在。像一张被折得很小的时间。）`);
+      return;
+    }
+    S.hasTicket = true;
+    setTask('t_ticket', true);
+    pushLine(`余丞：『我把电影票留给你——不是为了让你更难过，而是想让你记得：你曾被好好爱过。』`);
+    showToast("任务完成：取回电影票");
+    updateSide(); save();
+  }
+
+  function pickupEnvelope(){
+    if(S.hasEnvelope){
+      pushLine(`（你握着信封：纸张微黄，字迹却很清晰。）`);
+      return;
+    }
+    S.hasEnvelope = true;
+    setTask('t_envelope', true);
+    pushLine(`余丞：『信封里是我没来得及当面说的答案。杨桃，你可以慢慢看。』`);
+    showToast("任务完成：拿到信封");
+    updateSide(); save();
+  }
+
+  function readSMS(){
+    setTask('t_sms', true);
+    pushLine(`（短信）“那款游戏即将关服。”\n余丞：『杨桃，别怕。你走到这里，已经很勇敢了。』`);
+    showToast("任务完成：读取关服短信");
+    updateSide(); save();
+  }
+
+  function goodbye(){
+    pushLine(`余丞：『不是再见，是下次见。要在最盛的烟花下。』`);
+    showToast("告别");
+  }
+
+  // ===== Branch =====
+  function openBranchModal(){ modalBack.style.display='flex'; }
+  function closeBranchModal(){ modalBack.style.display='none'; }
+  function chooseBranch(which){
+    S.branch = which;
+    closeBranchModal();
+    showToast("分支已记录");
+    updateSide(); save();
+
+    if(which==='truth'){
+      pushLine(`杨桃：我想你。\n余丞：『……我知道。谢谢你把真话说出口。』`);
+    }else if(which==='bless'){
+      pushLine(`杨桃：我会好好的。\n余丞：『那就太好了。你值得更好。』`);
+    }else{
+      pushLine(`杨桃：你真啰嗦。\n余丞：『"啰嗦"？我只对你话多。』`);
+    }
+    renderNPCRow();
+  }
+
+  // ===== Next =====
+  function next(){
+    if(typing){ renderNode(false); return; }
+
+    const node = story[S.idx];
+    if(node.ch==='分支' && !S.branch){
+      openBranchModal();
+      showToast("请先选择分支");
+      return;
+    }
+
+    if(S.idx >= story.length - 1){
+      showToast("已到终章。你可以输入“我爱你”。");
+      auto=false;
+      el('btnAuto').textContent='自动：关';
+      return;
+    }
+
+    S.idx += 1;
+    S.day += 1;
+
+    const now = story[S.idx];
+    if(now.ch === '终章'){
+      fireworks();
+      S.final = true;
+      setTask('t_final', true);
+
+      const branchLine = (() => {
+        if(S.branch==='truth'){
+          return `你把思念说出口了。\n我在最盛的烟花里回你：\n“杨桃，我听见了。我一直在。”`;
+        }
+        if(S.branch==='bless'){
+          return `你把我留在未来里。\n我在最盛的烟花里回你：\n“杨桃，好好过。把幸福当成你的义务。”`;
+        }
+        return `你用玩笑挡住哽咽。\n我在最盛的烟花里回你：\n“我不啰嗦，我只是怕你一个人。”`;
+      })();
+
+      now.text =
+`你在泪水里敲下最后一行字：
+“余丞，我爱你。”
+
+屏幕暗下去的瞬间——
+这一次不再是冰冷的文字，而是我哽咽的声音：
+
+“我更爱你。”
+
+——
+${branchLine}
+
+（你可以点右侧NPC头像，听完他们最后的嘱托。）`;
+    }
+
+    if(now.ch==='分支') openBranchModal();
+    renderNode(true);
+  }
+
+  // ===== Hotspots =====
+  spots.pond.addEventListener('click', ()=>{ setTask('t_pond', true); homeRepair(10, "你钓鱼，池塘慢慢恢复呼吸。"); showToast("任务完成：修复池塘"); });
+  spots.garden.addEventListener('click', ()=>{ setTask('t_garden', true); homeRepair(12, "你除草、翻土，荒芜一点点退后。"); showToast("任务完成：修复菜园"); });
+  spots.cabinet.addEventListener('click', takeCandyFromCabinet);
+  spots.peach.addEventListener('click', plantPeach);
+
+  spots.ticket.addEventListener('click', pickupTicket);
+  spots.envelope.addEventListener('click', pickupEnvelope);
+  spots.urn.addEventListener('click', ()=>{ pushLine(`（你抱起骨灰盒。）\n余丞：『我知道你很想问“为什么”。杨桃，这不是你的错。』`); showToast("骨灰盒"); });
+  spots.sms.addEventListener('click', readSMS);
+
+  // ===== Buttons =====
+  el('btnWater').addEventListener('click', ()=> homeRepair(10, "你打水，浇灌枯萎的菜畦。"));
+  el('btnFish').addEventListener('click', ()=> homeRepair(10, "你钓鱼，把翻白肚的池塘慢慢“救活”。"));
+  el('btnWeed').addEventListener('click', ()=> homeRepair(12, "你除草，荒芜被一点点清理。"));
+  el('btnPeach').addEventListener('click', plantPeach);
+
+  el('btnNext').addEventListener('click', next);
+
+  el('btnAuto').addEventListener('click', ()=>{
+    auto = !auto;
+    el('btnAuto').textContent = auto ? '自动：开' : '自动：关';
+    if(auto && !typing){
+      autoTimer && clearTimeout(autoTimer);
+      autoTimer = setTimeout(()=>next(), 700);
+    }
+  });
+
+  el('btnReset').addEventListener('click', ()=>{
+    if(confirm("确定要重开吗？这会清空存档。")){
+      hardReset();
+    }
+  });
+
+  // ===== Input =====
+  function sendText(t){
+    const txt = (t||"").trim();
+    if(!txt) return;
+    pushLine(`杨桃：${txt}`);
+
+    if (txt === '我爱你' || txt === '我爱你。' || txt === '我爱你！'){ love(); return; }
+    if (txt.includes('不开心') || txt.includes('难过') || txt.includes('低落') || txt.includes('崩溃')){ triggerCandy(); return; }
+    if (txt === '生日快乐'){ birthday(); return; }
+    if (txt.includes('啰嗦')){ pushLine(`余丞：『"啰嗦"？我只对你话多。』`); showToast("啰嗦彩蛋"); return; }
+    if (txt.includes('再见') || txt.includes('关服') || txt.includes('告别')){ goodbye(); return; }
+    pushLine(`余丞：『我在，杨桃。慢慢说。』`);
+  }
+
+  el('btnSend').addEventListener('click', ()=>{ sendText(say.value); say.value=''; });
+  say.addEventListener('keydown', (e)=>{ if(e.key==='Enter'){ sendText(say.value); say.value=''; } });
+
+  el('pillLove').addEventListener('click', ()=>sendText('我爱你'));
+  el('pillSad').addEventListener('click', ()=>sendText('我有点不开心'));
+  el('pillBday').addEventListener('click', ()=>sendText('生日快乐'));
+  el('pillBye').addEventListener('click', ()=>sendText('再见'));
+
+  // ===== Branch events =====
+  optTruth.addEventListener('click', ()=>chooseBranch('truth'));
+  optBless.addEventListener('click', ()=>chooseBranch('bless'));
+  optJoke.addEventListener('click', ()=>chooseBranch('joke'));
+
+  // ===== Settings =====
+  speed.value = String(S.typeMs);
+  const speedNameFn = (v)=> v<=16?'快':(v<=26?'中':'慢');
+  function applySpeed(){
+    S.typeMs = parseInt(speed.value, 10);
+    speedLabel.textContent = speedNameFn(S.typeMs);
+    save();
+  }
+  speed.addEventListener('input', applySpeed);
+  applySpeed();
+
+  // ===== Boot =====
+  renderTasks();
+  renderNode(true);
+
+  // restore implied tasks
+  if(S.hasTicket) setTask('t_ticket', true);
+  if(S.hasEnvelope) setTask('t_envelope', true);
+  if(S.candyTaken) setTask('t_candy', true);
+  if(S.home>=100) setTask('t_home100', true);
+  if(S.final) setTask('t_final', true);
+
+  updateSide();
+})();
+</script>
+</body>
+</html>
+
